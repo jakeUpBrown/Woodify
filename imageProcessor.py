@@ -1,18 +1,10 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import math
-
-def read_file(filename):
-    img = cv2.imread(filename)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    plt.imshow(img)
-    plt.show()
-    return img
-
+from imageLoader import read_file, SamplePicture
 
 # Create Edge Mask
-def edge_mask(img, line_size, blur_value):
+def edge_mask(img, line_size=7, blur_value=7):
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     gray_blur = cv2.medianBlur(gray, blur_value)
 
@@ -27,7 +19,7 @@ def color_quantization(img, k):
     data = np.float32(img).reshape((-1, 3))
 
     # determine criteria
-    criteria = (cv2.TermCriteria_EPS + cv2.TERM_CRITERIA_MAX_ITER, 5, 0.001)
+    criteria = (cv2.TermCriteria_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 0.001)
 
     # implementing K-means
     ret, label, center = cv2.kmeans(data, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
@@ -44,23 +36,3 @@ def cartoon(blurred, edges):
     c = cv2.bitwise_and(blurred, blurred, mask=edges)
     plt.imshow(c)
     plt.show()
-
-
-# Reduce the noise
-filename = "Zion 1.jpg"
-img = read_file(filename)
-line_size, blur_value = 7,7
-e = edge_mask(img, line_size, blur_value)
-plt.imshow(e)
-plt.show()
-img = color_quantization(img, k=3)
-plt.imshow(img)
-plt.show()
-
-blurred = cv2.bilateralFilter(img, d=7, sigmaColor=500, sigmaSpace=200)
-plt.imshow(blurred)
-plt.show()
-
-cartoon(blurred, e)
-
-

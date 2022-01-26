@@ -1,0 +1,10 @@
+
+*.xml
+*.xml
+.idea/Woodify.iml
+.idea/misc.xml
+*.pyc
+venv/pyvenv.cfg
+venv/pyvenv.cfg
+.idea/misc.xml
+venv/pyvenv.cfg
