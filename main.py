@@ -11,7 +11,7 @@ k = 4
 blur_d = 5
 blur_iter = 3
 
-img = read_file(SamplePicture.JUNGLE_BOOK)
+img = read_file(SamplePicture.GIRL_FACE)
 e = edge_mask(img)
 
 for i in range(0,blur_iter):
@@ -29,9 +29,11 @@ for i in range(0,blur_iter):
 
 color_map = get_image_color_map(img)
 labels, num_labels = skimage.measure.label(img, return_num=True, connectivity=1)
-
-print(num_labels)
-plt.imshow(labels)
+print('before num_labels=', num_labels)
+img_holes_filled = skimage.morphology.remove_small_objects(labels, 100)
+img_holes_filled, num_labels = skimage.measure.label(img_holes_filled, return_num=True, connectivity=1)
+print('after num_labels=', num_labels)
+plt.imshow(img_holes_filled)
 plt.show()
 # cartoon(img, e)
 

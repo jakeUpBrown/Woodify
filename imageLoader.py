@@ -4,12 +4,24 @@ import matplotlib.pyplot as plt
 from enum import Enum
 
 samplePicsDir = "samplePhotos/"
+sampleWoodPicsDir = "woodSamples/"
 outputPicsDir = "outputPhotos/"
 class SamplePicture(Enum):
     ZION = samplePicsDir + "Zion 1.jpg"
     GIRL_FACE = samplePicsDir + "Girl Face 1.jpg"
     PARROTS = samplePicsDir + "parrots.jpg"
     JUNGLE_BOOK = samplePicsDir + "jungle-book.jpg"
+
+
+class WoodType(Enum):
+    ALDER = sampleWoodPicsDir + "alder.jpg"
+    CHERRY = sampleWoodPicsDir + "black-cherry.jpg"
+    BLACK_WALNUT = sampleWoodPicsDir + "black-walnut.jpg"
+    MAPLE = sampleWoodPicsDir + "hard-maple.jpg"
+    PADAUK = sampleWoodPicsDir + "padauk.jpg"
+    POPLAR = sampleWoodPicsDir + "poplar.jpg"
+    PURPLEHEART = sampleWoodPicsDir + "purpleheart.jpg"
+    WALNUT = sampleWoodPicsDir + "walnut.jpg"
 
 
 def read_file(filename):
