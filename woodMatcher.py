@@ -22,7 +22,7 @@ def generate_wood_hists():
     wood_hists = dict()
     for wood in WoodType:
         woodImg = read_file(wood)
-        hist = get_color_freqs(woodImg, 5)
+        hist = get_color_freqs(woodImg, 5, use_lab_values=True)
         wood_hists[wood.name] = hist
 
     with open(wood_hists_path, 'w') as outfile:
@@ -50,8 +50,11 @@ def load_wood_hists():
 def compare_hists(hist1, hist2):
     # will need some fancier way to compare these 2 hists since cv2.compareHist seems to need the same rgb values
     # in each hist?
-    return cv2.compareHist(conv_hist1, conv_hist2, method=cv2.HISTCMP_CORREL)
-
+    c_val = 0
+    for h1 in hist1:
+        for h2 in hist2:
+            h1[0]
+    return 1
 
 # send in list of colors and list of available wood
 def get_wood_list(colors, woods):

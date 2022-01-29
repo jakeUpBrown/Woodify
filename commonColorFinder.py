@@ -1,21 +1,31 @@
 import cv2, numpy as np
 from sklearn.cluster import KMeans
 from imageLoader import read_file, WoodType
+from skimage import io, color
 
-def get_color_freqs(image, num_colors):
+def get_color_freqs(image, num_colors, use_lab_values=False):
     reshape = image.reshape((image.shape[0] * image.shape[1], 3))
     cluster = KMeans(n_clusters=num_colors).fit(reshape)
-    return get_color_hist(cluster, cluster.cluster_centers_)
+    return get_color_hist(cluster, cluster.cluster_centers_, use_lab_values=use_lab_values)
 
 
-def get_color_hist(cluster, centroids):
+def get_color_hist(cluster, centroids, use_lab_values=False):
     labels = np.arange(0, len(np.unique(cluster.labels_)) + 1)
     (hist, _) = np.histogram(cluster.labels_, bins = labels)
     hist = hist.astype("float")
     hist /= hist.sum()
 
-    return sorted([(percent, color) for (percent, color) in zip(hist, centroids)])
-
+    srt = sorted([(percent, color) for (percent, color) in zip(hist, centroids)])
+    if not use_lab_values:
+        return srt
+    else:
+        for i in range(0, len(srt)):
+            rgb = srt[i][1]
+            rgb2 = [int(srt[i][1][0]), int(srt[i][1][1]), int(srt[i][1][2])]
+            lab = color.rgb2lab(rgb)
+            lab2 = color.rgb2lab(rgb2)
+            srt[i] = tuple([srt[i][0], lab])
+        return srt
 
 def visualize_colors(cluster, centroids):
     # Get the number of different clusters, create histogram, and normalize
