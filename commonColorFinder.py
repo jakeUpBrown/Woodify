@@ -3,6 +3,11 @@ from sklearn.cluster import KMeans
 from imageLoader import read_file, WoodType
 from skimage import io, color
 
+def rgb_to_lab(rgb):
+    return cv2.cvtColor(np.uint8([[rgb]]), cv2.COLOR_RGB2LAB)[0][0]
+    # convert since cv2.cvtColor has weird offset shit that happens
+    # return np.array([lab[0] / 2.55, lab[1] - 128, lab[2] - 128])
+
 def get_color_freqs(image, num_colors, use_lab_values=False):
     reshape = image.reshape((image.shape[0] * image.shape[1], 3))
     cluster = KMeans(n_clusters=num_colors).fit(reshape)
@@ -20,11 +25,7 @@ def get_color_hist(cluster, centroids, use_lab_values=False):
         return srt
     else:
         for i in range(0, len(srt)):
-            rgb = srt[i][1]
-            rgb2 = [int(srt[i][1][0]), int(srt[i][1][1]), int(srt[i][1][2])]
-            lab = color.rgb2lab(rgb)
-            lab2 = color.rgb2lab(rgb2)
-            srt[i] = tuple([srt[i][0], lab])
+            srt[i] = tuple([srt[i][0], rgb_to_lab(srt[i][1])])
         return srt
 
 def visualize_colors(cluster, centroids):

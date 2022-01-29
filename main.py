@@ -50,6 +50,9 @@ img_holes_filled = skimage.morphology.remove_small_objects(labels, 100)
 img_holes_filled, num_labels = skimage.measure.label(img_holes_filled, return_num=True, connectivity=1)
 print('after num_labels=', num_labels)
 
+mask = np.zeros(img.shape[:2], dtype="uint8")
+cv2.rectangle(mask, (0, 90), (290, 450), 255, -1)
+
 group_nums = convert_labels_to_group_nums(img_holes_filled)
 
 get_wood_matches(ogImg, group_nums)

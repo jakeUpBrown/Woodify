@@ -1,11 +1,15 @@
+import json
 import os
+
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-import json
+from colormath.color_diff import delta_e_cie1976
+from colormath.color_objects import LabColor
+
 from commonColorFinder import get_color_freqs
-from imageProcessor import color_quantization
 from imageLoader import read_file, WoodType
+from imageProcessor import color_quantization
+import matplotlib.pyplot as plt
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -22,6 +26,7 @@ def generate_wood_hists():
     wood_hists = dict()
     for wood in WoodType:
         woodImg = read_file(wood)
+        # woodImg = cv2.cvtColor(woodImg, cv2.COLOR_RGB2LAB)
         hist = get_color_freqs(woodImg, 5, use_lab_values=True)
         wood_hists[wood.name] = hist
 
@@ -48,13 +53,14 @@ def load_wood_hists():
 
 
 def compare_hists(hist1, hist2):
-    # will need some fancier way to compare these 2 hists since cv2.compareHist seems to need the same rgb values
-    # in each hist?
     c_val = 0
     for h1 in hist1:
+        color1 = LabColor(lab_l=h1[1][0], lab_a=h1[1][1], lab_b=h1[1][2])
         for h2 in hist2:
-            h1[0]
-    return 1
+            color2 = LabColor(lab_l=h2[1][0], lab_a=h2[1][1], lab_b=h2[1][2])
+            delta_e = delta_e_cie1976(color1, color2)
+            c_val += h1[0] * h2[0] * delta_e
+    return c_val
 
 # send in list of colors and list of available wood
 def get_wood_list(colors, woods):
@@ -77,7 +83,35 @@ def get_wood_list(colors, woods):
     # return pairs of colors to wood
 
 
-# wood_imgs = load_all_woods()
+def get_group_neighbors(group_nums, max_group):
+    height = len(group_nums)
+    width = len(group_nums[0])
+
+    group_neighbors = np.zeros(shape=(max_group, max_group), dtype=bool)
+    for i in range(0, height):
+        for j in range(0, width):
+            current_group = group_nums[i][j]
+            if i > 0:
+                top_neighbor = group_nums[i-1][j]
+                if top_neighbor != current_group:
+                    group_neighbors[top_neighbor][current_group] = True
+                    group_neighbors[current_group][top_neighbor] = True
+            if i < height - 1:
+                bottom_neighbor = group_nums[i + 1][j]
+                group_neighbors[bottom_neighbor][current_group] = True
+                group_neighbors[current_group][bottom_neighbor] = True
+
+            if j > 0:
+                left_neighbor = group_nums[i][j-1]
+                group_neighbors[left_neighbor][current_group] = True
+                group_neighbors[current_group][left_neighbor] = True
+
+            if j < width - 1:
+                right_neighbor = group_nums[i][j+1]
+                group_neighbors[right_neighbor][current_group] = True
+                group_neighbors[current_group][right_neighbor] = True
+
+    return group_neighbors
 
 
 def get_wood_matches(img, group_nums):
@@ -85,7 +119,8 @@ def get_wood_matches(img, group_nums):
     wood_hists = load_wood_hists()
 
     # convert to k=100(?) color quantization
-    k100img = color_quantization(img, 100)
+    lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+    k100img = color_quantization(lab_img, 100)
 
     cv2.imwrite("outputPhotos/k100_girl_face.jpg", k100img)
     # for each group, find all original pixels and try to find the best wood to match that group of pixels
@@ -142,7 +177,10 @@ def get_wood_matches(img, group_nums):
         group_hists[current_group] = hist
         current_group += 1
 
+    max_group_num = current_group - 1
+
     # compare hist to all wood types on files and add to color_to_wood table
+    color_wood_comp = dict()
     print('done with group_hists')
     group_idx = 0
     for g_num in group_hists:
@@ -150,8 +188,50 @@ def get_wood_matches(img, group_nums):
         for w_val in wood_hists:
             w_hist = wood_hists[w_val]
             comp_val = compare_hists(g_hist, w_hist)
+            color_wood_comp[tuple([g_num, w_val])] = comp_val
             print('Group ' + str(g_num) + ' vs ' + w_val + " = " + str(comp_val))
         group_idx += 1
+
+    group_neighbors = get_group_neighbors(group_nums, max_group_num + 1)
+    color_wood_comp = sorted(color_wood_comp.items(), key=lambda item:item[1])
+
+    ineligible_pairs = set()
+    color_wood_pairs = dict()
+    while len(color_wood_comp) > 0:
+        # get the first item in the color_wood_comp, since it is sorted, and that represents the best group-wood pair
+        pair = color_wood_comp.pop(0)
+        matched_group = pair[0][0]
+        if matched_group in color_wood_pairs or pair[0] in ineligible_pairs:
+            continue
+        matched_wood = pair[0][1]
+        color_wood_pairs[matched_group] = matched_wood
+
+        # find all neighbors
+        for j in range(0, max_group_num + 1):
+            if group_neighbors[matched_group][j] and j not in color_wood_pairs:
+                # add j,WOOD tuple key from color_wood_comp
+                ineligible_pairs.add(tuple([j, matched_wood]))
+
+    cumulative_wood_img = None
+
+    # create mask for group number
+    for i in range(0, max_group_num + 1):
+        print(i)
+        mask = np.zeros(img.shape[:2], dtype="uint8")
+        for h in range(0, height):
+            for w in range(0, width):
+                if group_nums[h][w] == i:
+                    mask[h][w] = 255
+
+        current_wood = WoodType(color_wood_pairs[i])
+        read_file(current_wood)
+        masked = cv2.bitwise_and(img, img, mask=mask)
+        plt.imshow(masked)
+        plt.show()
+    # combine mask with wood image
+    # combine all masked images into 1
+
+    print('tester')
 # function that takes in image, converts to k=100(?) color quantization
 # takes a certain group and gets the top 5 represented colors in that section and creates a histogram
 # compares that to all know wood histograms that we have
@@ -164,3 +244,7 @@ def get_wood_matches(img, group_nums):
 
 # once we've done that, we need to create masked images of the wood textures for every group
 # combine them into 1 image?
+
+
+# take group_neighbors and the hist comparisons and pick out the best matches for each wood, excluding neighbors
+# create masked images of each wood pattern and stitch them together
