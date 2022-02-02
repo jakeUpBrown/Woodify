@@ -24,6 +24,9 @@ class WoodType(Enum):
     PURPLEHEART = sampleWoodPicsDir + "purpleheart.jpg"
     WALNUT = sampleWoodPicsDir + "walnut.jpg"
 
+def wood_type_from_name(name):
+    return next(name for name, value in vars(WoodType).items() if value == 1)
+
 
 def read_file(filename, display_img=False):
     img = cv2.imread(filename.value)
