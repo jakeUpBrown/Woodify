@@ -105,10 +105,14 @@ def get_wood_matches(img, group_nums):
        :param group_nums: 2d array indicating which piece each pixel belongs to
        :return: dict where key = group number, and value = WoodType
     """
+    print('getting wood matches')
     wood_hists = load_wood_hists()
 
     # convert to k=100(?) color quantization
+    print('convert RGB to LAB')
     lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+
+    print('color quantize w/ 100 colors')
     k100img = color_quantization(lab_img, 100)
 
     # for each group, find all original pixels and try to find the best wood to match that group of pixels
@@ -126,6 +130,7 @@ def get_wood_matches(img, group_nums):
     # for each group id (starting at 0), traverse entire image and collect list of all colors
     # initial idea: get the average color and compare it to average colors of the wood images
 
+    print('group_ct', group_ct)
     group_hists = {}
     current_group = 0
     while True:
@@ -183,6 +188,7 @@ def get_wood_matches(img, group_nums):
 
     ineligible_pairs = set()
     color_wood_pairs = dict()
+    print('matching wood')
     while len(color_wood_comp) > 0:
         # get the first item in the color_wood_comp, since it is sorted, and that represents the best group-wood pair
         pair = color_wood_comp.pop(0)
@@ -198,5 +204,6 @@ def get_wood_matches(img, group_nums):
                 # add j,WOOD tuple key from color_wood_comp
                 ineligible_pairs.add(tuple([j, matched_wood]))
 
+    print('done matching woods')
     return color_wood_pairs
 

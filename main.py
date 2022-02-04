@@ -3,8 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import skimage
 import math
+
+from cartoonizer import cartoonize
 from imageLoader import read_file, SamplePicture, WoodType, wood_type_from_name
-from imageProcessor import edge_mask, color_quantization
+from imageProcessor import edge_mask, color_quantization, add_edges
 from findConnectedPoints import color_map_to_img, get_image_color_map
 from woodMatcher import get_wood_matches
 
@@ -54,11 +56,12 @@ def get_masked_wood_image(group_nums, current_group, wood_type, regionprops, rea
 
 
 def create_wood_preview(group_nums, group_wood_pairs, max_group_num, regionprops, real_img_shape):
-
+    print('creating wood preview')
     height = len(group_nums)
     width = len(group_nums[0])
     cumulative_wood_img = np.zeros((height, width, 3), np.uint8)
     for j in range(0, max_group_num + 1):
+        print('generating wood layer for group ' + str(j))
         wood_img, wood_img_mask = get_masked_wood_image(group_nums, j, group_wood_pairs[j], regionprops, None)
         # add to cumulative_wood_img
 
@@ -70,47 +73,28 @@ def create_wood_preview(group_nums, group_wood_pairs, max_group_num, regionprops
         #plt.imshow(cumulative_wood_img)
         #plt.show()
 
+    print('returning wood preview')
     return cumulative_wood_img
 
 
-k = 4
-blur_d = 5
-blur_iter = 3
-
-image_filename = SamplePicture.GIRL_FACE
+image_filename = SamplePicture.JAKE_EM
 img = read_file(image_filename)
 ogImg = read_file(image_filename)
 e = edge_mask(img)
 
-for i in range(0, blur_iter):
+cartoon_img, max_group_num = cartoonize(img)
 
-    if(i > 0):
-        img = cv2.bilateralFilter(img, d=blur_d, sigmaColor=500, sigmaSpace=200)
-        #plt.title("blurred - " + str(i))
-        #plt.imshow(img)
-        #plt.show()
-
-    img = color_quantization(img, k=k)
-    #plt.title("color quantize - " + str(i))
-    #plt.imshow(img)
-    #plt.show()
-
-color_map = get_image_color_map(img)
-labels, num_labels = skimage.measure.label(img, return_num=True, connectivity=2)
-print('before num_labels=', num_labels)
-img_holes_filled = skimage.morphology.remove_small_objects(labels, min_size=200, connectivity=1)
-img_holes_filled, num_labels = skimage.measure.label(img_holes_filled, return_num=True, connectivity=1)
-print('after num_labels=', num_labels)
-
-max_group_num = int(num_labels / 3) - 1
-
-group_nums = convert_labels_to_group_nums(img_holes_filled)
-regionprops = skimage.measure.regionprops(img_holes_filled)
+group_nums = convert_labels_to_group_nums(cartoon_img)
 group_wood_pairs = get_wood_matches(ogImg, group_nums)
 
+regionprops = skimage.measure.regionprops(cartoon_img)
 wood_preview = create_wood_preview(group_nums, group_wood_pairs, max_group_num, regionprops, None)
 
 plt.imshow(wood_preview)
+plt.show()
+
+img_with_edges = add_edges(wood_preview, e)
+plt.imshow(img_with_edges)
 plt.show()
 # cartoon(img, e)
 

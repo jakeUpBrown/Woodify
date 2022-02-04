@@ -17,12 +17,15 @@ def remove_small_objects(img, min_size=200):
 def cartoonize(img):
     wood_pieces_limit = 50
     blur_d = 5
+    blur_d_inc = .5
     k = 5
+    min_size = 200
+    min_size_inc = 25
 
     use_blur = False
     while True:
         if use_blur:
-            img = cv2.bilateralFilter(img, d=blur_d, sigmaColor=500, sigmaSpace=200)
+            img = cv2.bilateralFilter(img, d=int(blur_d), sigmaColor=500, sigmaSpace=200)
             # plt.title("blurred - " + str(i))
             # plt.imshow(img)
             # plt.show()
@@ -31,8 +34,11 @@ def cartoonize(img):
         img = color_quantization(img, k=k)
 
         # get the num_labels
-        img, max_group_num = remove_small_objects(img)
+        img_small_objects_removed, max_group_num = remove_small_objects(img, min_size=min_size)
         # if it's within the desired limit return image
         if max_group_num < wood_pieces_limit:
-            return img, max_group_num
+            return img_small_objects_removed, max_group_num
+
+        min_size += min_size_inc
+        blur_d += blur_d_inc
 

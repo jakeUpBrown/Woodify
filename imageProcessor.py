@@ -32,7 +32,7 @@ def color_quantization(img, k):
 
 
 # Combine Edge Mask with Quantiz Img
-def cartoon(blurred, edges):
-    c = cv2.bitwise_and(blurred, blurred, mask=edges)
-    plt.imshow(c)
-    plt.show()
+def add_edges(img, edges):
+    return cv2.bitwise_and(img, img, mask=edges)
+    # plt.imshow(c)
+    # plt.show()

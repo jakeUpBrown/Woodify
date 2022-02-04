@@ -12,6 +12,7 @@ class SamplePicture(Enum):
     GIRL_FACE = samplePicsDir + "Girl Face 1.jpg"
     PARROTS = samplePicsDir + "parrots.jpg"
     JUNGLE_BOOK = samplePicsDir + "jungle-book.jpg"
+    JAKE_EM = samplePicsDir + "jake-em.jpg"
 
 
 class WoodType(Enum):
