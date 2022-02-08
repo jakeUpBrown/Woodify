@@ -10,7 +10,7 @@ def get_image_color_map(img):
     width = img.shape[1]
     color_dict = dict()
     color_map = np.zeros((height, width), np.uint8)
-    latest_color_id = 0
+    latest_color_id = 1
     for i in range(0, height):
         for j in range(0, width):
             rgb = img[i][j]

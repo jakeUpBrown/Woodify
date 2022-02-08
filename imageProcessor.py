@@ -36,3 +36,12 @@ def add_edges(img, edges):
     return cv2.bitwise_and(img, img, mask=edges)
     # plt.imshow(c)
     # plt.show()
+
+
+
+# How to detect islands?
+def detect_islands(group_nums):
+    print('detect_islands')
+    # traverse through each group number and
+
+

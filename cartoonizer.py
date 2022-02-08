@@ -7,8 +7,8 @@ def remove_small_objects(img, min_size=200):
     labels, num_labels = skimage.measure.label(img, return_num=True, connectivity=2)
     max_group_num = int(num_labels / 3) - 1
     print('before max_group_num=', max_group_num)
-    img_holes_filled = skimage.morphology.remove_small_objects(labels, min_size=min_size, connectivity=1)
-    img_holes_filled, num_labels = skimage.measure.label(img_holes_filled, return_num=True, connectivity=1)
+    img_holes_filled = skimage.morphology.remove_small_objects(labels, min_size=min_size, connectivity=2)
+    img_holes_filled, num_labels = skimage.measure.label(img_holes_filled, return_num=True, connectivity=2)
     max_group_num = int(num_labels / 3) - 1
     print('after max_group_num=', max_group_num)
     return img_holes_filled, max_group_num
@@ -21,6 +21,9 @@ def cartoonize(img):
     k = 5
     min_size = 200
     min_size_inc = 25
+
+    iters = 0
+    min_iters = 3
 
     use_blur = False
     while True:
@@ -36,9 +39,10 @@ def cartoonize(img):
         # get the num_labels
         img_small_objects_removed, max_group_num = remove_small_objects(img, min_size=min_size)
         # if it's within the desired limit return image
-        if max_group_num < wood_pieces_limit:
+        if (max_group_num < wood_pieces_limit) and iters >= min_iters:
             return img_small_objects_removed, max_group_num
 
         min_size += min_size_inc
         blur_d += blur_d_inc
+        iters += 1
 

@@ -12,3 +12,7 @@ venv/pyvenv.cfg
 *.xml
 .idea/Woodify.iml
 .idea/misc.xml
+.idea/misc.xml
+.idea/Woodify.iml
+*.iml
+*.xml

@@ -5,10 +5,12 @@ import skimage
 import math
 
 from cartoonizer import cartoonize
-from imageLoader import read_file, SamplePicture, WoodType, wood_type_from_name
+from imageLoader import read_file, SamplePicture, WoodType, wood_type_from_name, write_output_picture
 from imageProcessor import edge_mask, color_quantization, add_edges
 from findConnectedPoints import color_map_to_img, get_image_color_map
+from shaper.polygonGenerator import generatePolygons
 from woodMatcher import get_wood_matches
+from datetime import datetime
 
 def convert_labels_to_group_nums(labels):
     height = len(labels)
@@ -77,7 +79,7 @@ def create_wood_preview(group_nums, group_wood_pairs, max_group_num, regionprops
     return cumulative_wood_img
 
 
-image_filename = SamplePicture.JAKE_EM
+image_filename = SamplePicture.GIRL_FACE
 img = read_file(image_filename)
 ogImg = read_file(image_filename)
 e = edge_mask(img)
@@ -85,6 +87,9 @@ e = edge_mask(img)
 cartoon_img, max_group_num = cartoonize(img)
 
 group_nums = convert_labels_to_group_nums(cartoon_img)
+
+# get polygons
+generatePolygons(group_nums)
 group_wood_pairs = get_wood_matches(ogImg, group_nums)
 
 regionprops = skimage.measure.regionprops(cartoon_img)
@@ -93,8 +98,11 @@ wood_preview = create_wood_preview(group_nums, group_wood_pairs, max_group_num, 
 plt.imshow(wood_preview)
 plt.show()
 
-img_with_edges = add_edges(wood_preview, e)
-plt.imshow(img_with_edges)
-plt.show()
+# img_with_edges = add_edges(wood_preview, e)
+# plt.imshow(img_with_edges)
+# plt.show()
+
+now = datetime.now()
+write_output_picture(wood_preview, image_filename + "_v1-0__" + now.strftime("%Y-%m%d_%H-%M"))
 # cartoon(img, e)
 

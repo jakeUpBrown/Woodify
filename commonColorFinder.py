@@ -43,13 +43,17 @@ def visualize_colors(cluster, centroids):
         start = end
     return rect
 
-# Load image and convert to a list of pixels
-image = read_file(WoodType.ALDER)
-reshape = image.reshape((image.shape[0] * image.shape[1], 3))
 
-# Find and display most dominant colors
-cluster = KMeans(n_clusters=5).fit(reshape)
-visualize = visualize_colors(cluster, cluster.cluster_centers_)
-visualize = cv2.cvtColor(visualize, cv2.COLOR_RGB2BGR)
-# cv2.imshow('visualize', visualize)
-cv2.waitKey()
+# don't think this is useful but I don't feel like checking right now
+# TODO: probably delete this.
+def run():
+    # Load image and convert to a list of pixels
+    image = read_file(WoodType.ALDER)
+    reshape = image.reshape((image.shape[0] * image.shape[1], 3))
+
+    # Find and display most dominant colors
+    cluster = KMeans(n_clusters=5).fit(reshape)
+    visualize = visualize_colors(cluster, cluster.cluster_centers_)
+    visualize = cv2.cvtColor(visualize, cv2.COLOR_RGB2BGR)
+    # cv2.imshow('visualize', visualize)
+    cv2.waitKey()

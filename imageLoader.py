@@ -13,6 +13,7 @@ class SamplePicture(Enum):
     PARROTS = samplePicsDir + "parrots.jpg"
     JUNGLE_BOOK = samplePicsDir + "jungle-book.jpg"
     JAKE_EM = samplePicsDir + "jake-em.jpg"
+    JAKE_EM_FILTER = samplePicsDir + "jake-em-filter.jpg"
 
 
 class WoodType(Enum):
