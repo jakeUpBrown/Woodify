@@ -7,31 +7,42 @@ from enum import Enum
 samplePicsDir = "samplePhotos/"
 sampleWoodPicsDir = "woodSamples/"
 outputPicsDir = "outputPhotos/"
+
+
 class SamplePicture(Enum):
-    ZION = samplePicsDir + "Zion 1.jpg"
-    GIRL_FACE = samplePicsDir + "Girl Face 1.jpg"
-    PARROTS = samplePicsDir + "parrots.jpg"
-    JUNGLE_BOOK = samplePicsDir + "jungle-book.jpg"
-    JAKE_EM = samplePicsDir + "jake-em.jpg"
-    JAKE_EM_FILTER = samplePicsDir + "jake-em-filter.jpg"
+    ZION = "Zion 1.jpg"
+    GIRL_FACE = "Girl Face 1.jpg"
+    PARROTS = "parrots.jpg"
+    JUNGLE_BOOK = "jungle-book.jpg"
+    JAKE_EM = "jake-em.jpg"
+    JAKE_EM_FILTER = "jake-em-filter.jpg"
 
 
 class WoodType(Enum):
-    ALDER = sampleWoodPicsDir + "alder.jpg"
-    CHERRY = sampleWoodPicsDir + "black-cherry.jpg"
-    BLACK_WALNUT = sampleWoodPicsDir + "black-walnut.jpg"
-    MAPLE = sampleWoodPicsDir + "hard-maple.jpg"
-    PADAUK = sampleWoodPicsDir + "padauk.jpg"
-    POPLAR = sampleWoodPicsDir + "poplar.jpg"
-    PURPLEHEART = sampleWoodPicsDir + "purpleheart.jpg"
-    WALNUT = sampleWoodPicsDir + "walnut.jpg"
+    ALDER = "alder.jpg"
+    CHERRY = "black-cherry.jpg"
+    BLACK_WALNUT = "black-walnut.jpg"
+    MAPLE = "hard-maple.jpg"
+    PADAUK = "padauk.jpg"
+    POPLAR = "poplar.jpg"
+    PURPLEHEART = "purpleheart.jpg"
+    WALNUT = "walnut.jpg"
+
 
 def wood_type_from_name(name):
     return next(name for name, value in vars(WoodType).items() if value == 1)
 
 
-def read_file(filename, display_img=False):
-    img = cv2.imread(filename.value)
+def read_sample_photo(filename):
+    return read_file(samplePicsDir + filename.value)
+
+
+def read_sample_wood_pic(filename):
+    return read_file(sampleWoodPicsDir + filename.value)
+
+
+def read_file(filepath, display_img=False):
+    img = cv2.imread(filepath)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     if display_img:
         plt.imshow(img)

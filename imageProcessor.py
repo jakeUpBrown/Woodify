@@ -1,7 +1,43 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from imageLoader import read_file, SamplePicture
+
+
+def pixel_size_to_router_bit_conversion2(img, bit_size, max_real_height, max_real_width):
+    height = len(img)
+    width = len(img[0])
+
+    aspect_ratio = width / height
+    max_theor_width = max_real_height * aspect_ratio
+    max_theor_height = max_real_width / aspect_ratio
+
+    real_width = min(max_theor_width, max_real_width)
+    real_height = min(max_theor_height, max_real_height)
+
+    if real_width < max_real_width:
+        scale_ratio = real_width/max_real_width
+    elif real_height < max_real_height:
+        scale_ratio = real_height/max_real_height
+    else:
+        raise Exception('SOMETHING WENT WRONG in pixel_size_to_router_bit_conversion')
+
+    return cv2.resize(img, (0,0), fx=scale_ratio, fy=scale_ratio)
+
+
+def pixel_size_to_router_bit_conversion(img, bit_size, max_real_height, max_real_width):
+    height = len(img)
+    width = len(img[0])
+
+    aspect_ratio = width / height
+    max_theor_width = max_real_height * aspect_ratio
+    max_theor_height = max_real_width / aspect_ratio
+
+    real_width = min(max_theor_width, max_real_width)
+    real_height = min(max_theor_height, max_real_height)
+
+    new_img_size = (int(real_width / bit_size), int(real_height / bit_size))
+
+    return cv2.resize(img, new_img_size)
+
 
 # Create Edge Mask
 def edge_mask(img, line_size=7, blur_value=7):
