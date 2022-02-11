@@ -5,8 +5,9 @@ import skimage
 import math
 
 from cartoonizer import cartoonize
-from imageLoader import read_file, SamplePicture, WoodType, wood_type_from_name, write_output_picture
-from imageProcessor import edge_mask, color_quantization, add_edges
+from imageLoader import SamplePicture, WoodType, wood_type_from_name, write_output_picture, \
+    read_sample_wood_pic, read_sample_photo
+from imageProcessor import edge_mask, color_quantization, add_edges, pixel_size_to_router_bit_conversion
 from findConnectedPoints import color_map_to_img, get_image_color_map
 from shaper.polygonGenerator import generatePolygons
 from woodMatcher import get_wood_matches
@@ -47,7 +48,7 @@ def get_masked_wood_image(group_nums, current_group, wood_type, regionprops, rea
     dim = (width, height)
 
     wood_type_enum = WoodType[wood_type]
-    wood_img = read_file(wood_type_enum)
+    wood_img = read_sample_wood_pic(wood_type_enum)
 
     #TODO: enhance this to create a realistically sized wood image
     wood_img = cv2.resize(wood_img, dim)
@@ -62,9 +63,10 @@ def create_wood_preview(group_nums, group_wood_pairs, max_group_num, regionprops
     height = len(group_nums)
     width = len(group_nums[0])
     cumulative_wood_img = np.zeros((height, width, 3), np.uint8)
-    for j in range(0, max_group_num + 1):
-        print('generating wood layer for group ' + str(j))
-        wood_img, wood_img_mask = get_masked_wood_image(group_nums, j, group_wood_pairs[j], regionprops, None)
+    for group_key in group_wood_pairs:
+        print('generating wood layer for group ' + str(group_key))
+        wood_img, wood_img_mask = \
+            get_masked_wood_image(group_nums, group_key, group_wood_pairs[group_key], regionprops, None)
         # add to cumulative_wood_img
 
         for h in range(0, height):
@@ -79,18 +81,23 @@ def create_wood_preview(group_nums, group_wood_pairs, max_group_num, regionprops
     return cumulative_wood_img
 
 
-image_filename = SamplePicture.GIRL_FACE
-img = read_file(image_filename)
-ogImg = read_file(image_filename)
+image_filename = SamplePicture.ZION
+img = read_sample_photo(image_filename)
+ogImg = read_sample_photo(image_filename)
+
+# img = pixel_size_to_router_bit_conversion(img, (1/16), 12, 12)
+# plt.imshow(img)
+# plt.show()
+
 e = edge_mask(img)
 
 cartoon_img, max_group_num = cartoonize(img)
 
 group_nums = convert_labels_to_group_nums(cartoon_img)
 
-# get polygons
-generatePolygons(group_nums)
 group_wood_pairs = get_wood_matches(ogImg, group_nums)
+# get polygons
+# generatePolygons(group_nums, group_wood_pairs, 1)
 
 regionprops = skimage.measure.regionprops(cartoon_img)
 wood_preview = create_wood_preview(group_nums, group_wood_pairs, max_group_num, regionprops, None)
@@ -103,6 +110,7 @@ plt.show()
 # plt.show()
 
 now = datetime.now()
-write_output_picture(wood_preview, image_filename + "_v1-0__" + now.strftime("%Y-%m%d_%H-%M"))
+image_filename_no_ext = image_filename.value.partition('.')[0]
+write_output_picture(wood_preview, image_filename_no_ext + "_v1-0__" + now.strftime("%Y-%m-%d %H-%M") + ".png")
 # cartoon(img, e)
 

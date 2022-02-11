@@ -15,15 +15,17 @@ def remove_small_objects(img, min_size=200):
 
 
 def cartoonize(img):
+    total_pixels = len(img) * len(img[0])
+
     wood_pieces_limit = 50
     blur_d = 5
     blur_d_inc = .5
     k = 5
-    min_size = 200
-    min_size_inc = 25
+    min_size = int(total_pixels / 1000)
+    min_size_inc = int(min_size / 8)
 
-    iters = 0
-    min_iters = 3
+    iters = 1
+    min_iters = 1
 
     use_blur = False
     while True:

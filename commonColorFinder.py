@@ -1,6 +1,6 @@
 import cv2, numpy as np
 from sklearn.cluster import KMeans
-from imageLoader import read_file, WoodType
+from imageLoader import WoodType, read_sample_wood_pic
 from skimage import io, color
 
 def rgb_to_lab(rgb):
@@ -48,7 +48,7 @@ def visualize_colors(cluster, centroids):
 # TODO: probably delete this.
 def run():
     # Load image and convert to a list of pixels
-    image = read_file(WoodType.ALDER)
+    image = read_sample_wood_pic(WoodType.ALDER)
     reshape = image.reshape((image.shape[0] * image.shape[1], 3))
 
     # Find and display most dominant colors

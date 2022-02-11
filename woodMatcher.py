@@ -7,7 +7,7 @@ from colormath.color_diff import delta_e_cie1976
 from colormath.color_objects import LabColor
 
 from commonColorFinder import get_color_freqs
-from imageLoader import read_file, WoodType
+from imageLoader import WoodType, read_sample_wood_pic
 from imageProcessor import color_quantization
 import matplotlib.pyplot as plt
 
@@ -25,7 +25,7 @@ wood_hists_path = 'wood_hists.json'
 def generate_wood_hists():
     wood_hists = dict()
     for wood in WoodType:
-        woodImg = read_file(wood)
+        woodImg = read_sample_wood_pic(wood)
         # woodImg = cv2.cvtColor(woodImg, cv2.COLOR_RGB2LAB)
         hist = get_color_freqs(woodImg, 5, use_lab_values=True)
         wood_hists[wood.name] = hist
@@ -63,16 +63,19 @@ def compare_hists(hist1, hist2):
     return c_val
 
 
-def get_group_neighbors(group_nums, max_group):
+# returns dict of dict (k = group_num, v = (k = group_num, v = isNeighbor))
+def get_group_neighbors(group_nums, group_keys):
     height = len(group_nums)
     width = len(group_nums[0])
 
-    group_neighbors = np.zeros(shape=(max_group, max_group), dtype=bool)
+    group_neighbors = {}
+    for group_key in group_keys:
+        group_neighbors[group_key] = {}
     for i in range(0, height):
         for j in range(0, width):
             current_group = group_nums[i][j]
             if i > 0:
-                top_neighbor = group_nums[i-1][j]
+                top_neighbor = group_nums[i - 1][j]
                 if top_neighbor != current_group:
                     group_neighbors[top_neighbor][current_group] = True
                     group_neighbors[current_group][top_neighbor] = True
@@ -82,19 +85,16 @@ def get_group_neighbors(group_nums, max_group):
                 group_neighbors[current_group][bottom_neighbor] = True
 
             if j > 0:
-                left_neighbor = group_nums[i][j-1]
+                left_neighbor = group_nums[i][j - 1]
                 group_neighbors[left_neighbor][current_group] = True
                 group_neighbors[current_group][left_neighbor] = True
 
             if j < width - 1:
-                right_neighbor = group_nums[i][j+1]
+                right_neighbor = group_nums[i][j + 1]
                 group_neighbors[right_neighbor][current_group] = True
                 group_neighbors[current_group][right_neighbor] = True
 
     return group_neighbors
-
-
-
 
 
 def get_wood_matches(img, group_nums):
@@ -131,24 +131,25 @@ def get_wood_matches(img, group_nums):
     # initial idea: get the average color and compare it to average colors of the wood images
 
     print('group_ct', group_ct)
+    group_color_cts = {}
+
+    for i in range(0, height):
+        for j in range(0, width):
+            current_group = group_nums[i][j]
+            if current_group not in group_color_cts:
+                group_color_ct = group_color_cts[current_group] = {}
+            else:
+                group_color_ct = group_color_cts[current_group]
+
+            current_color = tuple(k100img[i][j])
+
+            if current_color not in group_color_ct:
+                group_color_ct[current_color] = 1
+            else:
+                group_color_ct[current_color] += 1
+
     group_hists = {}
-    current_group = 0
-    while True:
-        group_color_ct = {}
-
-        for i in range(0, height):
-            for j in range(0, width):
-                if group_nums[i][j] == current_group:
-                    # add to map of color freq
-                    current_color = tuple(k100img[i][j])
-                    if current_color not in group_color_ct:
-                        group_color_ct[current_color] = 1
-                    else:
-                        group_color_ct[current_color] += 1
-
-        if len(group_color_ct) == 0:
-            break
-
+    for (group_num, group_color_ct) in group_color_cts.items():
         # get average of colors
         srt = {}
         top5sum = 0
@@ -165,10 +166,7 @@ def get_wood_matches(img, group_nums):
             t = ((v / top5sum), np.asarray(k))
             hist.append(t)
 
-        group_hists[current_group] = hist
-        current_group += 1
-
-    max_group_num = current_group - 1
+        group_hists[group_num] = hist
 
     # compare hist to all wood types on files and add to color_to_wood table
     color_wood_comp = dict()
@@ -183,8 +181,8 @@ def get_wood_matches(img, group_nums):
             print('Group ' + str(g_num) + ' vs ' + w_val + " = " + str(comp_val))
         group_idx += 1
 
-    group_neighbors = get_group_neighbors(group_nums, max_group_num + 1)
-    color_wood_comp = sorted(color_wood_comp.items(), key=lambda item:item[1])
+    group_neighbors = get_group_neighbors(group_nums, group_color_cts.keys())
+    color_wood_comp = sorted(color_wood_comp.items(), key=lambda item: item[1])
 
     ineligible_pairs = set()
     color_wood_pairs = dict()
@@ -199,11 +197,9 @@ def get_wood_matches(img, group_nums):
         color_wood_pairs[matched_group] = matched_wood
 
         # find all neighbors
-        for j in range(0, max_group_num + 1):
-            if group_neighbors[matched_group][j] and j not in color_wood_pairs:
-                # add j,WOOD tuple key from color_wood_comp
-                ineligible_pairs.add(tuple([j, matched_wood]))
+        for neighbor in group_neighbors[matched_group].keys():
+            if neighbor not in color_wood_pairs:
+                ineligible_pairs.add(tuple([neighbor, matched_wood]))
 
     print('done matching woods')
     return color_wood_pairs
-

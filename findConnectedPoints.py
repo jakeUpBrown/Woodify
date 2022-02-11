@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import skimage
-from imageLoader import read_file, SamplePicture
+from imageLoader import SamplePicture
 
 
 def get_image_color_map(img):
