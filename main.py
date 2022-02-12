@@ -81,7 +81,7 @@ def create_wood_preview(group_nums, group_wood_pairs, max_group_num, regionprops
     return cumulative_wood_img
 
 
-image_filename = SamplePicture.ZION
+image_filename = SamplePicture.GIRL_FACE
 img = read_sample_photo(image_filename)
 ogImg = read_sample_photo(image_filename)
 
@@ -96,14 +96,15 @@ cartoon_img, max_group_num = cartoonize(img)
 group_nums = convert_labels_to_group_nums(cartoon_img)
 
 group_wood_pairs = get_wood_matches(ogImg, group_nums)
-# get polygons
-# generatePolygons(group_nums, group_wood_pairs, 1)
 
 regionprops = skimage.measure.regionprops(cartoon_img)
 wood_preview = create_wood_preview(group_nums, group_wood_pairs, max_group_num, regionprops, None)
 
 plt.imshow(wood_preview)
 plt.show()
+
+# get polygons
+generatePolygons(group_nums, group_wood_pairs, 1)
 
 # img_with_edges = add_edges(wood_preview, e)
 # plt.imshow(img_with_edges)
