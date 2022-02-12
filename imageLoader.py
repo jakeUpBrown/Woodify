@@ -20,13 +20,18 @@ class SamplePicture(Enum):
 
 class WoodType(Enum):
     ALDER = "alder.jpg"
+    ASH = "ash.jpg"
+    BASSWOOD = "basswood.jpg"
     CHERRY = "black-cherry.jpg"
     BLACK_WALNUT = "black-walnut.jpg"
     MAPLE = "hard-maple.jpg"
     PADAUK = "padauk.jpg"
     POPLAR = "poplar.jpg"
     PURPLEHEART = "purpleheart.jpg"
+    RED_OAK = "red-oak.jpg"
     WALNUT = "walnut.jpg"
+    WENGE = "wenge.jpg"
+    WHITE_OAK = "white-oak.jpg"
 
 
 def wood_type_from_name(name):

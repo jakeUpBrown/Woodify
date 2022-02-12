@@ -55,6 +55,17 @@ def get_masked_wood_image(group_nums, current_group, wood_type, regionprops, rea
 
     mask = get_mask_from_group_nums(group_nums, current_group)
 
+    if current_group == 0:
+        wood_img_preview = np.zeros((height, width, 3), np.uint8)
+        for h in range(0, height):
+            for w in range(0, width):
+                if mask[h][w] == 255:
+                    wood_img_preview[h][w] = wood_img[h][w]
+
+        plt.title('Group Num: ' + str(current_group))
+        plt.imshow(wood_img_preview)
+        plt.show()
+
     return wood_img, mask
 
 
@@ -103,15 +114,11 @@ wood_preview = create_wood_preview(group_nums, group_wood_pairs, max_group_num, 
 plt.imshow(wood_preview)
 plt.show()
 
-# get polygons
-generatePolygons(group_nums, group_wood_pairs, 1)
-
-# img_with_edges = add_edges(wood_preview, e)
-# plt.imshow(img_with_edges)
-# plt.show()
-
 now = datetime.now()
 image_filename_no_ext = image_filename.value.partition('.')[0]
 write_output_picture(wood_preview, image_filename_no_ext + "_v1-0__" + now.strftime("%Y-%m-%d %H-%M") + ".png")
-# cartoon(img, e)
+
+# get polygons
+generatePolygons(group_nums, group_wood_pairs, 1)
+
 

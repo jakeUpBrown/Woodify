@@ -4,11 +4,11 @@ import skimage
 from imageProcessor import color_quantization
 
 def remove_small_objects(img, min_size=200):
-    labels, num_labels = skimage.measure.label(img, return_num=True, connectivity=2)
+    labels, num_labels = skimage.measure.label(img, background=-1, return_num=True, connectivity=1)
     max_group_num = int(num_labels / 3) - 1
     print('before max_group_num=', max_group_num)
-    img_holes_filled = skimage.morphology.remove_small_objects(labels, min_size=min_size, connectivity=2)
-    img_holes_filled, num_labels = skimage.measure.label(img_holes_filled, return_num=True, connectivity=2)
+    img_holes_filled = skimage.morphology.remove_small_objects(labels, min_size=min_size, connectivity=1)
+    img_holes_filled, num_labels = skimage.measure.label(img_holes_filled, background=-1, return_num=True, connectivity=1)
     max_group_num = int(num_labels / 3) - 1
     print('after max_group_num=', max_group_num)
     return img_holes_filled, max_group_num
@@ -17,7 +17,7 @@ def remove_small_objects(img, min_size=200):
 def cartoonize(img):
     total_pixels = len(img) * len(img[0])
 
-    wood_pieces_limit = 50
+    wood_pieces_limit = 100
     blur_d = 3
     blur_d_inc = .5
     k = 5
