@@ -9,7 +9,6 @@ from colormath.color_objects import LabColor
 from commonColorFinder import get_color_freqs
 from imageLoader import WoodType, read_sample_wood_pic
 from imageProcessor import color_quantization
-import matplotlib.pyplot as plt
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -20,6 +19,22 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 wood_hists_path = 'wood_hists.json'
+
+
+def get_group_ct(group_nums):
+    height = len(group_nums)
+    width = len(group_nums[0])
+
+    group_ct = {}
+    for i in range(0, height):
+        for j in range(0, width):
+            current_group = group_nums[i][j]
+            if current_group not in group_ct:
+                group_ct[current_group] = 1
+            else:
+                group_ct[current_group] += 1
+
+    return group_ct
 
 
 def generate_wood_hists():
@@ -68,31 +83,35 @@ def get_group_neighbors(group_nums, group_keys):
     height = len(group_nums)
     width = len(group_nums[0])
 
-    group_neighbors = {}
+    group_neighbors = dict()
     for group_key in group_keys:
-        group_neighbors[group_key] = {}
+        group_neighbors[group_key] = set()
     for i in range(0, height):
         for j in range(0, width):
             current_group = group_nums[i][j]
             if i > 0:
                 top_neighbor = group_nums[i - 1][j]
                 if top_neighbor != current_group:
-                    group_neighbors[top_neighbor][current_group] = True
-                    group_neighbors[current_group][top_neighbor] = True
-            if i < height - 1:
+                    group_neighbors[top_neighbor].add(current_group)
+                    group_neighbors[current_group].add(top_neighbor)
+
+            if i < (height - 1):
                 bottom_neighbor = group_nums[i + 1][j]
-                group_neighbors[bottom_neighbor][current_group] = True
-                group_neighbors[current_group][bottom_neighbor] = True
+                if bottom_neighbor != current_group:
+                    group_neighbors[bottom_neighbor].add(current_group)
+                    group_neighbors[current_group].add(bottom_neighbor)
 
             if j > 0:
                 left_neighbor = group_nums[i][j - 1]
-                group_neighbors[left_neighbor][current_group] = True
-                group_neighbors[current_group][left_neighbor] = True
+                if left_neighbor != current_group:
+                    group_neighbors[left_neighbor].add(current_group)
+                    group_neighbors[current_group].add(left_neighbor)
 
-            if j < width - 1:
+            if j < (width - 1):
                 right_neighbor = group_nums[i][j + 1]
-                group_neighbors[right_neighbor][current_group] = True
-                group_neighbors[current_group][right_neighbor] = True
+                if right_neighbor != current_group:
+                    group_neighbors[right_neighbor].add(current_group)
+                    group_neighbors[current_group].add(right_neighbor)
 
     return group_neighbors
 
@@ -119,18 +138,6 @@ def get_wood_matches(img, group_nums):
     height = len(group_nums)
     width = len(group_nums[0])
 
-    group_ct = {}
-    for i in range(0, height):
-        for j in range(0, width):
-            current_group = group_nums[i][j]
-            if current_group not in group_ct:
-                group_ct[current_group] = 1
-            else:
-                group_ct[current_group] += 1
-    # for each group id (starting at 0), traverse entire image and collect list of all colors
-    # initial idea: get the average color and compare it to average colors of the wood images
-
-    print('group_ct', group_ct)
     group_color_cts = {}
 
     for i in range(0, height):
@@ -197,7 +204,7 @@ def get_wood_matches(img, group_nums):
         color_wood_pairs[matched_group] = matched_wood
 
         # find all neighbors
-        for neighbor in group_neighbors[matched_group].keys():
+        for neighbor in group_neighbors[matched_group]:
             if neighbor not in color_wood_pairs:
                 ineligible_pairs.add(tuple([neighbor, matched_wood]))
 

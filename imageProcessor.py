@@ -1,5 +1,33 @@
 import cv2
 import numpy as np
+import math
+
+
+def convert_labels_to_group_nums(labels, return_group_ct=False):
+    height = len(labels)
+    width = len(labels[0])
+
+    # take the first value in the group 1 -> 0, 4 -> 1, 7 -> 2
+    group_nums = np.zeros((height, width), np.int64)
+    if return_group_ct:
+        group_cts = {}
+        for i in range(0, height):
+            for j in range(0, width):
+                group_num = math.floor(labels[i][j][0] / 3)
+                if group_num not in group_cts:
+                    group_cts[group_num] = 1
+                else:
+                    group_cts[group_num] += 1
+                group_nums[i][j] = group_num
+
+        return group_nums, group_cts
+
+    else:
+        for i in range(0, height):
+            for j in range(0, width):
+                group_nums[i][j] = math.floor(labels[i][j][0] / 3)
+
+        return group_nums
 
 
 def pixel_size_to_router_bit_conversion2(img, bit_size, max_real_height, max_real_width):
@@ -68,11 +96,18 @@ def color_quantization(img, k):
 
 
 # Combine Edge Mask with Quantiz Img
-def add_edges(img, edges):
-    return cv2.bitwise_and(img, img, mask=edges)
-    # plt.imshow(c)
-    # plt.show()
+def add_edges(img, edges, edge_shade_multiplier=.95):
+    height = len(img)
+    width = len(img[0])
 
+    for i in range(0, height):
+        for j in range(0, width):
+            if edges[i][j] == True:
+                og_rgb = img[i][j]
+                new_rgb = [int(element * edge_shade_multiplier) for element in og_rgb]
+                img[i][j] = new_rgb
+
+    return img
 
 
 # How to detect islands?
